@@ -15,7 +15,11 @@ import sqlite3
 
 
 app = flask.Flask(__name__)
-app.config.from_envvar('APP_CONFIG')
+# app.config.from_envvar('APP_CONFIG')
+FLASK_APP = 'api'
+FLASK_ENV = 'development'
+APP_CONFIG = 'api.cfg'
+DATABASE = 'test.db'
 
 
 def make_dicts(cursor, row):
@@ -26,7 +30,7 @@ def make_dicts(cursor, row):
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect(app.config['DATABASE'])
+        db = g._database = sqlite3.connect(DATABASE)
         db.row_factory = make_dicts
     return db
 
@@ -59,12 +63,12 @@ def query_db_check(query, args=(), one=False):
 
 def make_error(status_code, message):
     abort(make_response(jsonify(message=message, stausCode=status_code), status_code))
-    
+
+
 def check_parameters(*params):
-        for param in params:
-            if param is None:
-                make_error(400, 'Required parameter is missing')
-    
+    for param in params:
+        if param is None:
+            make_error(400, 'Required parameter is missing')
 
 
 @app.cli.command('init')
@@ -95,44 +99,46 @@ def createUser():
     if result:
         make_error(400, 'user exists already')
     else:
-        sql = """INSERT INTO user(firstName, lastName, userName, email, password)
+        sql = """INSERT INTO users(firstName, lastName, userName, email, password)
                           VALUES(?, ?, ?, ?, ?)"""
         data_tuple = (firstName, lastName, userName, email, password)
         result = query_db(sql, data_tuple)
         print('result is', result)
     return {'message': 'User Created', 'statusCode': 201}
 
-@app.route('/addFollower', methods = ['GET','POST'])
+
+@app.route('/addFollower', methods=['GET', 'POST'])
 def addFollower():
     userName = request.json.get("userName")
     usernameToFollow = request.json.get("usernameToFollow")
-    check_parameters(userName,usernameToFollow)
-    
+    check_parameters(userName, usernameToFollow)
+
     checkUserQuery = """SELECT id
                           , username
                    FROM users
                    WHERE username=?"""
-    
+
     userExistData = (userName)
-    
+
     user_result = query_db_check(checkUserQuery, userExistData)
-    
+
     userExistData = (usernameToFollow)
     follow_user_result = query_db_check(checkUserQuery, userExistData)
-    
-    
+
     if user_result or follow_user_result:
         sql = """Select id from users where userName = ?"""
         data = (usernameToFollow)
         result = query_db(sql, data)
         sql = """INSERT INTO userFollower(id, userName, follower)
                           VALUES(?, ?, ?)"""
-                          
+
         values = (result, usernameToFollow, userName)
         result = query_db(sql, values)
-        return {'message' : 'Follower added', 'statueCode' : 201}
-        
+        return {'message': 'Follower added', 'statueCode': 201}
+
     else:
-         make_error(400, 'user Or UserToFollow Does Not Exists')
-    
-app.run()
+        make_error(400, 'user Or UserToFollow Does Not Exists')
+
+
+if __name__ == "__main__":
+    app.run()
