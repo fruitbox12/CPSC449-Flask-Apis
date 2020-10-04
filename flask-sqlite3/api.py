@@ -59,6 +59,12 @@ def query_db_check(query, args=(), one=False):
 
 def make_error(status_code, message):
     abort(make_response(jsonify(message=message, stausCode=status_code), status_code))
+    
+def check_parameters(*params):
+        for param in params:
+            if param is None:
+                make_error(400, 'Required parameter is missing')
+    
 
 
 @app.cli.command('init')
@@ -77,12 +83,11 @@ def createUser():
     userName = request.json.get("userName")
     email = request.json.get("email")
     password = request.json.get("password")
-    if None in (firstName, lastName, userName, email, password):
-        make_error(400, 'Required parameter is missing')
+    check_parameters(firstName, lastName, userName, email, password)
 
     checkUserQuery = """SELECT email
                           , username
-                   FROM user
+                   FROM users
                    WHERE email=?
                        OR username=?"""
     userExistData = (email, userName)
@@ -97,36 +102,37 @@ def createUser():
         print('result is', result)
     return {'message': 'User Created', 'statusCode': 201}
 
-
-@app.errorhandler(404)
-def page_not_found(e):
-    return make_error(404, 'No Url Found')
-
-@app.route('/api/v1/resources/books', methods=['GET'])
-def api_filter():
-    query_parameters = request.args
-
-    id = query_parameters.get('id')
-    published = query_parameters.get('published')
-    author = query_parameters.get('author')
-
-    query = "SELECT * FROM users WHERE"
-    to_filter = []
-
-    if id:
-        query += ' id=? AND'
-        to_filter.append(id)
-    if published:
-        query += ' published=? AND'
-        to_filter.append(published)
-    if author:
-        query += ' author=? AND'
-        to_filter.append(author)
-    if not (id or published or author):
-        return page_not_found(404)
-
-    query = query[:-4] + ';'
-
-    results = query_db(query, to_filter)
-
-    return jsonify(results)
+@app.route('/addFollower', methods = ['GET','POST'])
+def addFollower():
+    userName = request.json.get("userName")
+    usernameToFollow = request.json.get("usernameToFollow")
+    check_parameters(userName,usernameToFollow)
+    
+    checkUserQuery = """SELECT id
+                          , username
+                   FROM users
+                   WHERE username=?"""
+    
+    userExistData = (userName)
+    
+    user_result = query_db_check(checkUserQuery, userExistData)
+    
+    userExistData = (usernameToFollow)
+    follow_user_result = query_db_check(checkUserQuery, userExistData)
+    
+    
+    if user_result or follow_user_result:
+        sql = """Select id from users where userName = ?"""
+        data = (usernameToFollow)
+        result = query_db(sql, data)
+        sql = """INSERT INTO userFollower(id, userName, follower)
+                          VALUES(?, ?, ?)"""
+                          
+        values = (result, usernameToFollow, userName)
+        result = query_db(sql, values)
+        return {'message' : 'Follower added', 'statueCode' : 201}
+        
+    else:
+         make_error(400, 'user Or UserToFollow Does Not Exists')
+    
+app.run()

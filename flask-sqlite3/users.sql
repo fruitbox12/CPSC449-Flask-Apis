@@ -13,3 +13,11 @@ CREATE TABLE users
     email VARCHAR,
     password VARCHAR,
 );
+
+DROP TABLE IF EXISTS userFollowers;
+CREATE TABLE userFollowers
+(
+    id INTEGER primary key Foreign key references users(id),
+    userName VARCHAR,
+    follower VARCHAR
+);
