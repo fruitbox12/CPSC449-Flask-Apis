@@ -71,12 +71,6 @@ def check_parameters(*params):
         if param is None:
             make_error(400, 'Required parameter is missing')
 
-def hash_password(password):
-    salt = hashlib.sha256(os.urandom(60)).hexdigest().encode('ascii')
-    hashedPassword =  hashlib.pbkdf2_hmac('sha512', password.encode('utf-8'), 
-                                salt, 100000)
-    hashedPassword= binascii.hexlify(hashedPassword)
-    return (salt + hashedPassword).decode('ascii')
 
 @app.before_first_request
 def init_db():
@@ -94,7 +88,7 @@ def createUser():
     email = request.json.get("email")
     password = request.json.get("password")
     uuidVal = str(uuid.uuid4())
-    hashedPassword = hash_password(password)
+    hashedPassword = str(hashlib.md5(password.encode()).hexdigest())
     check_parameters(firstName, lastName, userName, email, password)
 
     checkUserQuery = """SELECT email
@@ -127,12 +121,18 @@ def checkUserExist(userId):
     
 
 
-@app.route('/authenticate', methods = ['GET','POST'])
+@app.route('/authenticate', methods = ['POST'])
 def authenticate():
-    return
+    userName = request.json.get("userName")
+    password = request.json.get("password")
+    sql = """select password from users where userName=?"""
+    data = (userName,)
+    storedPassword = query_db_check(sql, data).get("password")
+    newPassword = str(hashlib.md5(password.encode()).hexdigest())
+    return {'message': storedPassword == newPassword}
+     
     
-
-@app.route('/addFollower', methods=['GET', 'POST'])
+@app.route('/addFollower', methods=['POST'])
 def addFollower():
     userName = request.json.get("userName")
     usernameToFollow = request.json.get("usernameToFollow")
@@ -143,26 +143,38 @@ def addFollower():
                    FROM users
                    WHERE username=?"""
 
-    userExistData = (userName)
+    userExistData = (userName,)
 
     user_result = query_db_check(checkUserQuery, userExistData)
 
-    userExistData = (usernameToFollow)
+    userExistData = (usernameToFollow,)
     follow_user_result = query_db_check(checkUserQuery, userExistData)
 
-    if user_result or follow_user_result:
-        sql = """Select id from users where userName = ?"""
-        data = (usernameToFollow)
-        result = query_db(sql, data)
-        sql = """INSERT INTO userFollower(id, userName, follower)
-                          VALUES(?, ?, ?)"""
+    if user_result and follow_user_result:
+        sql_select = """Select id from users where userName = ?"""
+        data = (usernameToFollow,)
+        idOfFollowing = query_db_check(sql_select, data).get("id")
+        
+        data = (userName,)
+        idOfUser = query_db_check(sql_select, data).get("id")
+        sql_insert = """INSERT INTO followers(userid, following)
+                          VALUES(?, ?)"""
 
-        values = (result, usernameToFollow, userName)
-        result = query_db(sql, values)
+        
+        values = (idOfUser, idOfFollowing)
+        
+        print("value",values)
+        result = query_db(sql_insert, values)
         return {'message': 'Follower added', 'statueCode': 201}
 
     else:
         make_error(400, 'user Or UserToFollow Does Not Exists')
+        
+        
+@app.route('/removeFollower', methods=['POST'])
+def removeFollower():
+    return
+    
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)

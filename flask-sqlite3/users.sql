@@ -19,6 +19,6 @@ CREATE TABLE IF NOT EXISTS users
 
 CREATE TABLE IF NOT EXISTS followers (
 	userid VARCHAR(256) NOT NULL,
-	follower VARCHAR(256) NOT NULL,
-	PRIMARY KEY (userid,follower)
+	following VARCHAR(256) NOT NULL,
+	PRIMARY KEY (userid,following)
 );
