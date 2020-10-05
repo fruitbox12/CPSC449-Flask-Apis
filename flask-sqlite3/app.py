@@ -11,7 +11,7 @@
 
 import flask
 from flask import request, jsonify, g, abort, make_response
-import sqlite3
+import sqlite3,uuid
 import hashlib, binascii, os
 
 
@@ -93,7 +93,7 @@ def createUser():
     userName = request.json.get("userName")
     email = request.json.get("email")
     password = request.json.get("password")
-    uuidVal = userName + str(uuid.uuid4())
+    uuidVal = str(uuid.uuid4())
     hashedPassword = hash_password(password)
     check_parameters(firstName, lastName, userName, email, password)
 
@@ -121,7 +121,7 @@ def checkUserExist(userId):
     data = (userId,)
     result = query_db_check(sql, data)
     if result is None:
-        make_error(400, 'user does not exists')
+        make_error(400, 'false')
     else:
         return {'message': 'true', 'statusCode': 201}
     
