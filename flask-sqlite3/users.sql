@@ -2,9 +2,9 @@
 
 -- PRAGMA foreign_keys
 -- =ON;
-BEGIN TRANSACTION;
-DROP TABLE IF EXISTS users;
-CREATE TABLE users
+
+
+CREATE TABLE IF NOT EXISTS users
 (
     id INTEGER primary key,
     firstName VARCHAR,
@@ -14,10 +14,8 @@ CREATE TABLE users
     password VARCHAR,
 );
 
-DROP TABLE IF EXISTS userFollowers;
-CREATE TABLE userFollowers
-(
-    id INTEGER primary key Foreign key references users(id),
-    userName VARCHAR,
-    follower VARCHAR
-);
+CREATE TABLE IF NOT EXISTS followers (
+	userid VARCHAR(256) NOT NULL,
+	follower VARCHAR(256) NOT NULL,
+	PRIMARY KEY (userid,follower)
+)
