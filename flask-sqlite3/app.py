@@ -94,9 +94,8 @@ def createUser():
     checkUserQuery = """SELECT email
                           , username
                    FROM users
-                   WHERE email=?
-                       OR username=?"""
-    userExistData = (email, userName)
+                   WHERE username=?"""
+    userExistData = (userName,)
     result = query_db_check(checkUserQuery, userExistData)
     if result:
         make_error(400, 'user exists already')
@@ -109,15 +108,6 @@ def createUser():
     return {'message': 'User Created', 'statusCode': 201}
 
 
-@app.route('/app/v1/<userId>/checkUserExist',methods=['GET','POST'])
-def checkUserExist(userId):
-    sql = """select * from users where id=?"""
-    data = (userId,)
-    result = query_db_check(sql, data)
-    if result is None:
-        make_error(400, 'false')
-    else:
-        return {'message': 'true', 'statusCode': 201}
     
 
 
