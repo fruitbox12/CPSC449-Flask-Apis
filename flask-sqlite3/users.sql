@@ -4,7 +4,6 @@
 -- =ON;
 
 
-
 CREATE TABLE IF NOT EXISTS users
 (
     id INTEGER primary key,
@@ -14,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users
     email VARCHAR,
     password VARCHAR,
 );
+
 
 CREATE TABLE IF NOT EXISTS followers (
 	userid VARCHAR(256) NOT NULL,
