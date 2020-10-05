@@ -163,9 +163,9 @@ def addFollower():
         
         values = (idOfUser, idOfFollowing)
         
-        print("value",values)
-        result = query_db(sql_insert, values)
-        return {'message': 'Follower added', 'statueCode': 201}
+        query_db(sql_insert, values)
+        message = str(userName+' has started following '+usernameToFollow)
+        return {'message': message, 'statueCode': 201}
 
     else:
         make_error(400, 'user Or UserToFollow Does Not Exists')
@@ -173,6 +173,39 @@ def addFollower():
         
 @app.route('/removeFollower', methods=['POST'])
 def removeFollower():
+    userName = request.json.get("userName")
+    usernameToFollow = request.json.get("usernameToFollow")
+    checkUserQuery = """SELECT id
+                          , username
+                   FROM users
+                   WHERE username=?"""
+
+    userExistData = (userName,)
+
+    user_result = query_db_check(checkUserQuery, userExistData)
+
+    userExistData = (usernameToFollow,)
+    follow_user_result = query_db_check(checkUserQuery, userExistData)
+
+    if user_result and follow_user_result:
+        sql_select = """Select id from users where userName = ?"""
+        data = (usernameToFollow,)
+        idOfFollowing = query_db_check(sql_select, data).get("id")
+        
+        data = (userName,)
+        idOfUser = query_db_check(sql_select, data).get("id")
+        sql_delete = """DELETE from followers where userId = ? and following = ?"""
+        
+        values = (idOfUser, idOfFollowing)
+        
+        query_db(sql_delete, values)
+        message = str(userName+' has stopped following '+usernameToFollow)
+        return {'message':message  , 'statueCode': 201}
+
+    else:
+        make_error(400, 'user Or UserToFollow Does Not Exists')
+        
+    
     return
     
 
