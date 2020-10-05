@@ -93,6 +93,7 @@ def createUser():
     userName = request.json.get("userName")
     email = request.json.get("email")
     password = request.json.get("password")
+    uuidVal = userName + str(uuid.uuid4())
     hashedPassword = hash_password(password)
     check_parameters(firstName, lastName, userName, email, password)
 
@@ -106,9 +107,9 @@ def createUser():
     if result:
         make_error(400, 'user exists already')
     else:
-        sql = """INSERT INTO users(firstName, lastName, userName, email, password)
-                          VALUES(?, ?, ?, ?, ?)"""
-        data_tuple = (firstName, lastName, userName, email, hashedPassword)
+        sql = """INSERT INTO users(id, firstName, lastName, userName, email, password)
+                          VALUES(?, ?, ?, ?, ?, ?)"""
+        data_tuple = (uuidVal, firstName, lastName, userName, email, hashedPassword)
         result = query_db(sql, data_tuple)
         print('result is', result)
     return {'message': 'User Created', 'statusCode': 201}
@@ -128,7 +129,7 @@ def checkUserExist(userId):
 
 @app.route('/authenticate', methods = ['GET','POST'])
 def authenticate():
-    
+    return
     
 
 @app.route('/addFollower', methods=['GET', 'POST'])
