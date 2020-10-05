@@ -4,14 +4,16 @@
 -- =ON;
 
 
+
 CREATE TABLE IF NOT EXISTS users
 (
-    id INTEGER primary key,
+    id VARCHAR,
     firstName VARCHAR,
     lastName VARCHAR,
-    userName VARCHAR,
+    userName VARCHAR UNIQUE,
     email VARCHAR,
     password VARCHAR,
+    PRIMARY KEY (id)
 );
 
 
