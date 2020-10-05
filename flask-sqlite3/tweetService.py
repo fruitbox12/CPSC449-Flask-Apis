@@ -54,6 +54,16 @@ def query_db(query, args=(), one=False):
     return (rv[0] if rv else None) if one else rv
 
 
+def plain_query_db(query):
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(query)
+    db.commit()
+    rv = cur.fetchall()
+    cur.close()
+    return (rv[0] if rv else None) if False else rv
+
+
 def query_db_check(query, args=(), one=False):
     db = get_db()
     cur = db.execute(query, args)
@@ -82,10 +92,9 @@ def init_db():
         db.commit()
 
 
-@app.route('/tweetService/v1/postTweet', methods=['PUT'])
-def postTweet():
+@app.route('/tweetService/v1/<user_id>/postTweet', methods=['PUT'])
+def postTweet(user_id):
     # ideally one should take sessionId in the request and validate the session and proceed
-    user_id = request.json.get("userId")
     # check if use exists
     tweet_text = request.json.get("tweetText")
     if None in (user_id, tweet_text):
@@ -106,15 +115,33 @@ def getUserTimeline(user_id):
     # ideally one should take sessionId in the request and validate the session and proceed
     if not user_id:
         make_error(400, "Required parameter 'userId' is missing")
-
     checkUserQuery = """SELECT tweet_text, date_of_creation FROM tweets WHERE userId=? LIMIT 25"""
     userExistData = (user_id,)
     result = query_db(checkUserQuery, userExistData)
     print(result)
-    #tweets = jsonify(result)
-    #response = jsonify({"userId": user_id, "tweets": tweets})
     return jsonify(result)
 
+
+@app.route('/tweetService/v1/publicTweets', methods=['GET'])
+def getPublicTimeline():
+    checkUserQuery = """SELECT userid, tweet_text, date_of_creation FROM tweets LIMIT 25"""
+    # userExistData = ()
+    result = plain_query_db(checkUserQuery)
+    print(result)
+    # tweets = jsonify(result)
+    # response = jsonify({"userId": user_id, "tweets": tweets})
+    return jsonify(result)
+
+@app.route('/tweetService/v1/<user_id>/tweetsFromFollowings', methods=['GET'])
+def getHomeTimeline(user_id):
+    # ideally one should take sessionId in the request and validate the session and proceed
+    if not user_id:
+        make_error(400, "Required parameter 'userId' is missing")
+    checkUserQuery = """SELECT tweet_text, date_of_creation FROM tweets WHERE userId=? LIMIT 25"""
+    userExistData = (user_id,)
+    result = query_db(checkUserQuery, userExistData)
+    print(result)
+    return jsonify(result)
 
 if __name__ == "__main__":
     app.run()
