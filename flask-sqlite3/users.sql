@@ -11,11 +11,11 @@ CREATE TABLE IF NOT EXISTS users
     lastName VARCHAR,
     userName VARCHAR,
     email VARCHAR,
-    password VARCHAR,
+    password VARCHAR
 );
 
 CREATE TABLE IF NOT EXISTS followers (
 	userid VARCHAR(256) NOT NULL,
 	follower VARCHAR(256) NOT NULL,
 	PRIMARY KEY (userid,follower)
-)
+);

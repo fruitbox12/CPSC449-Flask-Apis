@@ -12,6 +12,7 @@
 import flask
 from flask import request, jsonify, g, abort, make_response
 import sqlite3
+import hashlib, binascii, os
 
 
 app = flask.Flask(__name__)
@@ -70,15 +71,20 @@ def check_parameters(*params):
         if param is None:
             make_error(400, 'Required parameter is missing')
 
+def hash_password(password):
+    salt = hashlib.sha256(os.urandom(60)).hexdigest().encode('ascii')
+    hashedPassword =  hashlib.pbkdf2_hmac('sha512', password.encode('utf-8'), 
+                                salt, 100000)
+    hashedPassword= binascii.hexlify(hashedPassword)
+    return (salt + hashedPassword).decode('ascii')
 
-@app.cli.command('init')
+@app.before_first_request
 def init_db():
     with app.app_context():
         db = get_db()
         with app.open_resource('users.sql', mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
-
 
 @app.route('/createUser', methods=['GET', 'POST'])
 def createUser():
@@ -87,6 +93,7 @@ def createUser():
     userName = request.json.get("userName")
     email = request.json.get("email")
     password = request.json.get("password")
+    hashedPassword = hash_password(password)
     check_parameters(firstName, lastName, userName, email, password)
 
     checkUserQuery = """SELECT email
@@ -101,11 +108,28 @@ def createUser():
     else:
         sql = """INSERT INTO users(firstName, lastName, userName, email, password)
                           VALUES(?, ?, ?, ?, ?)"""
-        data_tuple = (firstName, lastName, userName, email, password)
+        data_tuple = (firstName, lastName, userName, email, hashedPassword)
         result = query_db(sql, data_tuple)
         print('result is', result)
     return {'message': 'User Created', 'statusCode': 201}
 
+
+@app.route('/app/v1/<userId>/checkUserExist',methods=['GET','POST'])
+def checkUserExist(userId):
+    sql = """select * from users where id=?"""
+    data = (userId,)
+    result = query_db_check(sql, data)
+    if result is None:
+        make_error(400, 'user does not exists')
+    else:
+        return {'message': 'true', 'statusCode': 201}
+    
+
+
+@app.route('/authenticate', methods = ['GET','POST'])
+def authenticate():
+    
+    
 
 @app.route('/addFollower', methods=['GET', 'POST'])
 def addFollower():
@@ -139,6 +163,5 @@ def addFollower():
     else:
         make_error(400, 'user Or UserToFollow Does Not Exists')
 
-
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True, use_reloader=False)
