@@ -166,22 +166,22 @@ def removeFollower():
     if request.json is None:
     	make_error(400, 'No Data Provided')
     userName = request.json.get("userName")
-    usernameToFollow = request.json.get("usernameToUnFollow")
+    userNameToUnFollow = request.json.get("userNameToUnFollow")
     checkUserQuery = """SELECT id, username FROM users WHERE username=?"""
     userExistData = (userName,)
     user_result = query_db_check(checkUserQuery, userExistData)
-    userExistData = (usernameToFollow,)
+    userExistData = (userNameToUnFollow,)
     follow_user_result = query_db_check(checkUserQuery, userExistData)
     if user_result and follow_user_result:
         sql_select = """Select id from users where userName = ?"""
-        data = (usernameToFollow,)
+        data = (userNameToUnFollow,)
         idOfFollowing = query_db_check(sql_select, data).get("id")
         data = (userName,)
         idOfUser = query_db_check(sql_select, data).get("id")
         sql_delete = """DELETE from followers where userId = ? and following = ?"""
         values = (idOfUser, idOfFollowing)
         query_db(sql_delete, values)
-        message = str(userName + ' has stopped following ' + usernameToFollow)
+        message = str(userName + ' has stopped following ' + userNameToUnFollow)
         return {'message': message, 'statueCode': 201}
     else:
         make_error(400, 'user Or UserToFollow Does Not Exists')
