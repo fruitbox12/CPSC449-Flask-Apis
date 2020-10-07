@@ -11,12 +11,8 @@
 
 import flask
 from flask import request, jsonify, g, abort, make_response
-import sqlite3
-import uuid
-import hashlib
-import binascii
-import os
-
+import sqlite3, uuid
+import hashlib, binascii, os
 
 app = flask.Flask(__name__)
 app.config.from_envvar('APP_CONFIG')
@@ -34,9 +30,7 @@ def make_dicts(cursor, row):
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        # db = g._database = sqlite3.connect(DATABASE)
         db = g._database = sqlite3.connect(app.config['DATABASE'])
-
         db.row_factory = make_dicts
     return db
 
@@ -81,38 +75,28 @@ def check_parameters(*params):
 def init_db():
     with app.app_context():
         db = get_db()
-        with app.open_resource('users.sql', mode='r') as f:
+        with app.open_resource(app.config['SQL_FILEPATH'], mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
 
 
 @app.route('/createUser', methods=['GET', 'POST'])
 def createUser():
-    firstName = request.json.get("firstName")
-    lastName = request.json.get("lastName")
     userName = request.json.get("userName")
     email = request.json.get("email")
     password = request.json.get("password")
-    uuidVal = str(uuid.uuid4())
     hashedPassword = str(hashlib.md5(password.encode()).hexdigest())
-    check_parameters(firstName, lastName, userName, email, password)
-
-    checkUserQuery = """SELECT email
-                          , username
-                   FROM users
-                   WHERE username=?"""
+    check_parameters(userName, email, password)
+    checkUserQuery = """SELECT username, email FROM users WHERE username=?"""
     userExistData = (userName,)
     result = query_db_check(checkUserQuery, userExistData)
     if result:
         make_error(400, 'user exists already')
     else:
-        sql = """INSERT INTO users(id, firstName, lastName, userName, email, password)
-                          VALUES(?, ?, ?, ?, ?, ?)"""
-        data_tuple = (uuidVal, firstName, lastName,
-                      userName, email, hashedPassword)
+        sql = """INSERT INTO users (userName, email, password) VALUES(?, ?, ?)"""
+        data_tuple = (userName, email, hashedPassword)
         result = query_db(sql, data_tuple)
-        print('result is', result)
-    return {'message': 'User Created', 'statusCode': 201}
+    return {'message': 'User Created', 'statusCode': 200}
 
 
 @app.route('/authenticate', methods=['POST'])
@@ -123,7 +107,11 @@ def authenticate():
     data = (userName,)
     storedPassword = query_db_check(sql, data).get("password")
     newPassword = str(hashlib.md5(password.encode()).hexdigest())
-    return {'message': storedPassword == newPassword}
+    if storedPassword == newPassword:
+        return jsonify({"message": "user authenticated", "statusCode": "200", "status": "ok"})
+    else:
+        return jsonify(
+            {"statusCode": "401", "status": "Unauthorized", "message:": "either username or password do not match"})
 
 
 @app.route('/addFollower', methods=['POST'])
@@ -131,35 +119,22 @@ def addFollower():
     userName = request.json.get("userName")
     usernameToFollow = request.json.get("usernameToFollow")
     check_parameters(userName, usernameToFollow)
-
-    checkUserQuery = """SELECT id
-                          , username
-                   FROM users
-                   WHERE username=?"""
-
+    checkUserQuery = """SELECT id, username FROM users WHERE username=?"""
     userExistData = (userName,)
-
     user_result = query_db_check(checkUserQuery, userExistData)
-
     userExistData = (usernameToFollow,)
     follow_user_result = query_db_check(checkUserQuery, userExistData)
-
     if user_result and follow_user_result:
         sql_select = """Select id from users where userName = ?"""
         data = (usernameToFollow,)
         idOfFollowing = query_db_check(sql_select, data).get("id")
-
         data = (userName,)
         idOfUser = query_db_check(sql_select, data).get("id")
-        sql_insert = """INSERT INTO followers(userid, following)
-                          VALUES(?, ?)"""
-
+        sql_insert = """INSERT INTO followers(userid, following) VALUES(?, ?)"""
         values = (idOfUser, idOfFollowing)
-
         query_db(sql_insert, values)
-        message = str(userName+' has started following '+usernameToFollow)
+        message = str(userName + ' has started following ' + usernameToFollow)
         return {'message': message, 'statueCode': 201}
-
     else:
         make_error(400, 'user Or UserToFollow Does Not Exists')
 
@@ -168,37 +143,24 @@ def addFollower():
 def removeFollower():
     userName = request.json.get("userName")
     usernameToFollow = request.json.get("usernameToFollow")
-    checkUserQuery = """SELECT id
-                          , username
-                   FROM users
-                   WHERE username=?"""
-
+    checkUserQuery = """SELECT id, username FROM users WHERE username=?"""
     userExistData = (userName,)
-
     user_result = query_db_check(checkUserQuery, userExistData)
-
     userExistData = (usernameToFollow,)
     follow_user_result = query_db_check(checkUserQuery, userExistData)
-
     if user_result and follow_user_result:
         sql_select = """Select id from users where userName = ?"""
         data = (usernameToFollow,)
         idOfFollowing = query_db_check(sql_select, data).get("id")
-
         data = (userName,)
         idOfUser = query_db_check(sql_select, data).get("id")
         sql_delete = """DELETE from followers where userId = ? and following = ?"""
-
         values = (idOfUser, idOfFollowing)
-
         query_db(sql_delete, values)
-        message = str(userName+' has stopped following '+usernameToFollow)
+        message = str(userName + ' has stopped following ' + usernameToFollow)
         return {'message': message, 'statueCode': 201}
-
     else:
         make_error(400, 'user Or UserToFollow Does Not Exists')
-
-    return
 
 
 if __name__ == "__main__":
