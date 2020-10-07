@@ -1,1 +1,2 @@
 api: flask run -p $PORT
+tweetService: flask run -p $PORT

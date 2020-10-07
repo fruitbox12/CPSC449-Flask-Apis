@@ -17,12 +17,12 @@ import uuid
 from datetime import datetime
 
 app = flask.Flask(__name__)
-# app.config.from_envvar('APP_CONFIG')
-FLASK_APP = 'api'
-FLASK_ENV = 'development'
-APP_CONFIG = 'api.cfg'
-DATABASE = '../flask-sqlite3/test.db'
-SQL_FILEPATH = '../flask-sqlite3/users.sql'
+app.config.from_envvar('APP_CONFIG')
+# FLASK_APP = 'api'
+# FLASK_ENV = 'development'
+# APP_CONFIG = 'api.cfg'
+# DATABASE = 'test.db'
+# SQL_FILEPATH = 'users.sql'
 
 
 def make_dicts(cursor, row):
@@ -33,7 +33,8 @@ def make_dicts(cursor, row):
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
+        # db = g._database = sqlite3.connect(DATABASE)
+        db = g._database = sqlite3.connect(app.config['DATABASE'])
         db.row_factory = make_dicts
     return db
 
@@ -88,7 +89,7 @@ def check_parameters(*params):
 def init_db():
     with app.app_context():
         db = get_db()
-        with app.open_resource(SQL_FILEPATH, mode='r') as f:
+        with app.open_resource(app.config['SQL_FILEPATH'], mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
 

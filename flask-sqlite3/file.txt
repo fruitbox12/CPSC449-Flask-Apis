@@ -1,0 +1,7 @@
+{
+    "firstName": "satish",
+    "lastName": "pinnuri",
+    "userName": "satish_pinnuri",
+    "email": "satish@yopmail.com",
+    "password": "satish@123"
+}

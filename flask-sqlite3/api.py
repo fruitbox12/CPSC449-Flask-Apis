@@ -11,16 +11,19 @@
 
 import flask
 from flask import request, jsonify, g, abort, make_response
-import sqlite3,uuid
-import hashlib, binascii, os
+import sqlite3
+import uuid
+import hashlib
+import binascii
+import os
 
 
 app = flask.Flask(__name__)
-# app.config.from_envvar('APP_CONFIG')
-FLASK_APP = 'api'
-FLASK_ENV = 'development'
-APP_CONFIG = 'api.cfg'
-DATABASE = 'test.db'
+app.config.from_envvar('APP_CONFIG')
+# FLASK_APP = 'api'
+# FLASK_ENV = 'development'
+# APP_CONFIG = 'api.cfg'
+# DATABASE = 'test.db'
 
 
 def make_dicts(cursor, row):
@@ -31,7 +34,9 @@ def make_dicts(cursor, row):
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
+        # db = g._database = sqlite3.connect(DATABASE)
+        db = g._database = sqlite3.connect(app.config['DATABASE'])
+
         db.row_factory = make_dicts
     return db
 
@@ -80,6 +85,7 @@ def init_db():
             db.cursor().executescript(f.read())
         db.commit()
 
+
 @app.route('/createUser', methods=['GET', 'POST'])
 def createUser():
     firstName = request.json.get("firstName")
@@ -102,16 +108,14 @@ def createUser():
     else:
         sql = """INSERT INTO users(id, firstName, lastName, userName, email, password)
                           VALUES(?, ?, ?, ?, ?, ?)"""
-        data_tuple = (uuidVal, firstName, lastName, userName, email, hashedPassword)
+        data_tuple = (uuidVal, firstName, lastName,
+                      userName, email, hashedPassword)
         result = query_db(sql, data_tuple)
         print('result is', result)
     return {'message': 'User Created', 'statusCode': 201}
 
 
-    
-
-
-@app.route('/authenticate', methods = ['POST'])
+@app.route('/authenticate', methods=['POST'])
 def authenticate():
     userName = request.json.get("userName")
     password = request.json.get("password")
@@ -120,8 +124,8 @@ def authenticate():
     storedPassword = query_db_check(sql, data).get("password")
     newPassword = str(hashlib.md5(password.encode()).hexdigest())
     return {'message': storedPassword == newPassword}
-     
-    
+
+
 @app.route('/addFollower', methods=['POST'])
 def addFollower():
     userName = request.json.get("userName")
@@ -144,23 +148,22 @@ def addFollower():
         sql_select = """Select id from users where userName = ?"""
         data = (usernameToFollow,)
         idOfFollowing = query_db_check(sql_select, data).get("id")
-        
+
         data = (userName,)
         idOfUser = query_db_check(sql_select, data).get("id")
         sql_insert = """INSERT INTO followers(userid, following)
                           VALUES(?, ?)"""
 
-        
         values = (idOfUser, idOfFollowing)
-        
+
         query_db(sql_insert, values)
         message = str(userName+' has started following '+usernameToFollow)
         return {'message': message, 'statueCode': 201}
 
     else:
         make_error(400, 'user Or UserToFollow Does Not Exists')
-        
-        
+
+
 @app.route('/removeFollower', methods=['POST'])
 def removeFollower():
     userName = request.json.get("userName")
@@ -181,23 +184,22 @@ def removeFollower():
         sql_select = """Select id from users where userName = ?"""
         data = (usernameToFollow,)
         idOfFollowing = query_db_check(sql_select, data).get("id")
-        
+
         data = (userName,)
         idOfUser = query_db_check(sql_select, data).get("id")
         sql_delete = """DELETE from followers where userId = ? and following = ?"""
-        
+
         values = (idOfUser, idOfFollowing)
-        
+
         query_db(sql_delete, values)
         message = str(userName+' has stopped following '+usernameToFollow)
-        return {'message':message  , 'statueCode': 201}
+        return {'message': message, 'statueCode': 201}
 
     else:
         make_error(400, 'user Or UserToFollow Does Not Exists')
-        
-    
+
     return
-    
+
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)
