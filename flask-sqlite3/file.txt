@@ -1,7 +1,4 @@
 {
-    "firstName": "satish21",
-    "lastName": "pinnuri11",
-    "userName": "satish_ssspi1nnuri2",
-    "email": "satis121ssh@yopmail.com",
-    "password": "sati1sh1@123"
+	"userName":"spande"
+	"tweetText":"spande text 1"
 }

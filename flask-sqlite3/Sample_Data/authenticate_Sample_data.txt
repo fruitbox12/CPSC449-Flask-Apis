@@ -1,0 +1,49 @@
+{
+    "userName":"ureddy",
+    "password":"ud@123"
+}
+{
+    "userName":"spande",
+    "password":"spande#123"
+}
+{
+    "userName":"npolas",
+    "password":"neer#polas"
+}
+{
+    "userName":"aKale",
+    "password":"aKale@123"
+}
+{
+    "userName":"vMaha",
+    "password":"vvmd@22"
+}
+{
+    "userName":"kJagtap",
+    "password":"kiran#Ja12"
+}
+{
+    "userName":"omiV",
+    "password":"omi_12s"
+}
+{
+    "userName":"AviD",
+    "password":"avi#2233"
+}
+{
+    "userName":"aritraSen",
+    "password":"arit@123"
+}
+{
+    "userName":"dilD",
+    "password":"ballu@i14"
+}
+{
+    "userName":"giruk",
+    "password":"kumar@girish"
+}
+{
+    "userName":"Cheerr",
+    "password":"reddy@223"
+}
+

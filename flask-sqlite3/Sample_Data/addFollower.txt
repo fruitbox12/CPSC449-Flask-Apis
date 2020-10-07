@@ -1,0 +1,49 @@
+{
+    "userName":"ureddy",
+    "usernameToFollow":"spande"
+}
+{
+    "userName":"ureddy",
+    "usernameToFollow":"npolas"
+}
+{
+    "userName":"ureddy",
+    "usernameToFollow":"aKale"
+}
+{
+    "userName":"ureddy",
+    "usernameToFollow":"vMaha"
+}
+{
+    "userName":"spande",
+    "usernameToFollow":"ureddy"
+}
+{
+    "userName":"spande",
+    "usernameToFollow":"vMaha"
+}
+{
+    "userName":"spande",
+    "usernameToFollow":"omiV"
+}
+{
+    "userName":"spande",
+    "usernameToFollow":"npolas"
+}
+{
+    "userName":"npolas",
+    "usernameToFollow":"kJagtap"
+}
+{
+    "userName":"npolas",
+    "usernameToFollow":"omiV"
+}
+{
+    "userName":"npolas",
+    "usernameToFollow":"AviD"
+}
+{
+    "userName":"npolas",
+    "usernameToFollow":"aritraSen"
+}
+

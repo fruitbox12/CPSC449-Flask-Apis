@@ -71,6 +71,7 @@ def check_parameters(*params):
             make_error(400, 'Required parameter is missing')
 
 
+
 @app.before_first_request
 def init_db():
     with app.app_context():
@@ -82,6 +83,8 @@ def init_db():
 
 @app.route('/createUser', methods=['GET', 'POST'])
 def createUser():
+    if request.json is None:
+    	make_error(400, 'No Data Provided')
     userName = request.json.get("userName")
     email = request.json.get("email")
     password = request.json.get("password")
@@ -101,8 +104,11 @@ def createUser():
 
 @app.route('/authenticate', methods=['POST'])
 def authenticate():
+    if request.json is None:
+    	make_error(400, 'No Data Provided')
     userName = request.json.get("userName")
     password = request.json.get("password")
+    check_parameters(userName, password)
     sql = """select password from users where userName=?"""
     data = (userName,)
     storedPassword = query_db_check(sql, data).get("password")
@@ -116,6 +122,8 @@ def authenticate():
 
 @app.route('/addFollower', methods=['POST'])
 def addFollower():
+    if request.json is None:
+    	make_error(400, 'No Data Provided')
     userName = request.json.get("userName")
     usernameToFollow = request.json.get("usernameToFollow")
     check_parameters(userName, usernameToFollow)
@@ -125,22 +133,32 @@ def addFollower():
     userExistData = (usernameToFollow,)
     follow_user_result = query_db_check(checkUserQuery, userExistData)
     if user_result and follow_user_result:
+    	
         sql_select = """Select id from users where userName = ?"""
         data = (usernameToFollow,)
         idOfFollowing = query_db_check(sql_select, data).get("id")
         data = (userName,)
         idOfUser = query_db_check(sql_select, data).get("id")
+        checkDuplicateSql = """SELECT * from followers where userid = ? and following=?"""
+        duplicate_data=(idOfUser, idOfFollowing)
         sql_insert = """INSERT INTO followers(userid, following) VALUES(?, ?)"""
         values = (idOfUser, idOfFollowing)
-        query_db(sql_insert, values)
-        message = str(userName + ' has started following ' + usernameToFollow)
-        return {'message': message, 'statueCode': 201}
+        record = query_db_check(checkDuplicateSql,duplicate_data)
+        if record is None:
+        	query_db(sql_insert, values)
+        	message = str(userName + ' has started following ' + usernameToFollow)
+        	return {'message': message, 'statueCode': 201}
+        else:
+        	message = str(userName + ' already follows ' + usernameToFollow)
+        	make_error(400, message)        
     else:
         make_error(400, 'user Or UserToFollow Does Not Exists')
 
 
 @app.route('/removeFollower', methods=['POST'])
 def removeFollower():
+    if request.json is None:
+    	make_error(400, 'No Data Provided')
     userName = request.json.get("userName")
     usernameToFollow = request.json.get("usernameToFollow")
     checkUserQuery = """SELECT id, username FROM users WHERE username=?"""
