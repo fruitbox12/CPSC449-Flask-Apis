@@ -1,4 +1,3 @@
 {
 	"userName":"spande"
-	"tweetText":"spande text 1"
 }

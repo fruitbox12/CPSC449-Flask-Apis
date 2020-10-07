@@ -13,6 +13,7 @@ import flask
 from flask import request, jsonify, g, abort, make_response
 import sqlite3, uuid
 import hashlib, binascii, os
+from werkzeug.security import generate_password_hash,check_password_hash
 
 app = flask.Flask(__name__)
 app.config.from_object(__name__)
@@ -93,7 +94,7 @@ def createUser():
     userName = request.json.get("userName")
     email = request.json.get("email")
     password = request.json.get("password")
-    hashedPassword = str(hashlib.md5(password.encode()).hexdigest())
+    hashedPassword = str(generate_password_hash(password,method='pbkdf2:sha256',salt_length=8))
     check_parameters(userName, email, password)
     checkUserQuery = """SELECT username, email FROM users WHERE username=?"""
     userExistData = (userName,)
@@ -117,8 +118,8 @@ def authenticate():
     sql = """select password from users where userName=?"""
     data = (userName,)
     storedPassword = query_db_check(sql, data).get("password")
-    newPassword = str(hashlib.md5(password.encode()).hexdigest())
-    if storedPassword == newPassword:
+    flag = check_password_hash(storedPassword, password)
+    if flag:
         return jsonify({"message": "user authenticated", "statusCode": "200", "status": "ok"})
     else:
         return jsonify(
@@ -165,7 +166,7 @@ def removeFollower():
     if request.json is None:
     	make_error(400, 'No Data Provided')
     userName = request.json.get("userName")
-    usernameToFollow = request.json.get("usernameToFollow")
+    usernameToFollow = request.json.get("usernameToUnFollow")
     checkUserQuery = """SELECT id, username FROM users WHERE username=?"""
     userExistData = (userName,)
     user_result = query_db_check(checkUserQuery, userExistData)
