@@ -15,6 +15,7 @@ import sqlite3, uuid
 import hashlib, binascii, os
 
 app = flask.Flask(__name__)
+app.config.from_object(__name__)
 app.config.from_envvar('APP_CONFIG')
 # FLASK_APP = 'api'
 # FLASK_ENV = 'development'
@@ -80,6 +81,10 @@ def init_db():
             db.cursor().executescript(f.read())
         db.commit()
 
+
+@app.route('/', methods=['GET'])
+def helloMethod():
+    return "this is user api"
 
 @app.route('/createUser', methods=['GET', 'POST'])
 def createUser():
@@ -182,4 +187,4 @@ def removeFollower():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    app.run()

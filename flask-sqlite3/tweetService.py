@@ -17,6 +17,7 @@ import uuid
 from datetime import datetime
 
 app = flask.Flask(__name__)
+app.config.from_object(__name__)
 app.config.from_envvar('APP_CONFIG')
 # FLASK_APP = 'api'
 # FLASK_ENV = 'development'
@@ -88,7 +89,7 @@ def check_parameters(*params):
 def init_db():
     with app.app_context():
         db = get_db()
-        with app.open_resource(SQL_FILEPATH, mode='r') as f:
+        with app.open_resource(app.config['SQL_FILEPATH'], mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
 
@@ -114,9 +115,13 @@ def getUserId(user_name):
     else:
         return result[0].get('id')
 
+@app.route('/', methods=['GET'])
+def helloMethod():
+    return "this is tweet api"
 
 @app.route('/tweetService/v1/postTweet', methods=['POST'])
 def postTweet():
+    print("hr")
     user_name = request.json.get("userName")
     tweet_text = request.json.get("tweetText")
     if None in (user_name, tweet_text):
@@ -129,14 +134,13 @@ def postTweet():
     query_db(checkUserQuery, userExistData)
     return jsonify({"statusCode": "200", "status": "ok"})
 
-
 @app.route('/tweetService/v1/userTweets', methods=['GET'])
 def getUserTimeline():
     user_name = request.args.get("userName")
     if not user_name:
         make_error(400, "Required parameter 'userName' is missing")
     user_name = user_name.strip()
-    user_id = getUserId(user_name) # this does user validation also
+    user_id = getUserId(user_name)  # this does user validation also
     checkUserQuery = """SELECT tweet_text, date_of_creation FROM tweets WHERE userid=? ORDER BY date_of_creation DESC LIMIT 25"""
     userExistData = (user_id,)
     result = query_db(checkUserQuery, userExistData)
@@ -174,4 +178,4 @@ def getHomeTimeline():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    app.run()
