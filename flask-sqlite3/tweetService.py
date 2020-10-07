@@ -33,8 +33,7 @@ def make_dicts(cursor, row):
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        # db = g._database = sqlite3.connect(DATABASE)
-        db = g._database = sqlite3.connect(app.config['DATABASE'])
+        db = g._database = sqlite3.connect(DATABASE)
         db.row_factory = make_dicts
     return db
 
@@ -89,15 +88,15 @@ def check_parameters(*params):
 def init_db():
     with app.app_context():
         db = get_db()
-        with app.open_resource(app.config['SQL_FILEPATH'], mode='r') as f:
+        with app.open_resource(SQL_FILEPATH, mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
 
 
-def checkUserExist(userId):
-    userId = userId.strip()
-    sql = """select * from users where id=?"""
-    data = (userId,)
+def checkUserExists(user_name):
+    user_name = user_name.strip()
+    sql = """select userName from users where userName=?"""
+    data = (user_name,)
     result = query_db_check(sql, data)
     if result is None:
         return False
@@ -105,54 +104,60 @@ def checkUserExist(userId):
         return True
 
 
-@app.route('/tweetService/v1/<user_id>/postTweet', methods=['PUT'])
-def postTweet(user_id):
-    # ideally one should take sessionId in the request and validate the session and proceed
-    # check if use exists
-    tweet_text = request.json.get("tweetText")
-    if None in (user_id, tweet_text):
-        make_error(400, 'One or many required parameters are missing')
-    user_id = user_id.strip()
-    twid = uuid.uuid4()
-    tweet_id = "twid-" + str(twid)
-    date_of_creation = datetime.utcnow()
-    checkUserQuery = """INSERT INTO tweets (userid,tweet_id,tweet_text,date_of_creation) VALUES (?,?,?,?)"""
-    userExistData = (user_id, tweet_id, tweet_text, date_of_creation)
+def getUserId(user_name):
+    user_name = user_name.strip()
+    sql = """select id from users where userName=?"""
+    data = (user_name,)
+    result = query_db(sql, data)
+    if not result:
+        make_error(400, "user:'" + user_name + "' does not exist")
+    else:
+        return result[0].get('id')
 
+
+@app.route('/tweetService/v1/postTweet', methods=['POST'])
+def postTweet():
+    user_name = request.json.get("userName")
+    tweet_text = request.json.get("tweetText")
+    if None in (user_name, tweet_text):
+        make_error(400, 'One or many required parameters are missing')
+    user_name = user_name.strip()
+    user_id = getUserId(user_name)
+    date_of_creation = datetime.utcnow()
+    checkUserQuery = """INSERT INTO tweets (userid,tweet_text,date_of_creation) VALUES (?,?,?)"""
+    userExistData = (user_id, tweet_text, date_of_creation)
     query_db(checkUserQuery, userExistData)
     return jsonify({"statusCode": "200", "status": "ok"})
 
 
-@app.route('/tweetService/v1/<user_id>/userTweets', methods=['GET'])
-def getUserTimeline(user_id):
-    # ideally one should take sessionId in the request and validate the session and proceed
-    if not user_id:
-        make_error(400, "Required parameter 'userId' is missing")
-        user_id = user_id.strip()
-    checkUserQuery = """SELECT tweet_text, date_of_creation FROM tweets WHERE userId=? LIMIT 25"""
+@app.route('/tweetService/v1/userTweets', methods=['GET'])
+def getUserTimeline():
+    user_name = request.args.get("userName")
+    if not user_name:
+        make_error(400, "Required parameter 'userName' is missing")
+    user_name = user_name.strip()
+    user_id = getUserId(user_name) # this does user validation also
+    checkUserQuery = """SELECT tweet_text, date_of_creation FROM tweets WHERE userid=? ORDER BY date_of_creation DESC LIMIT 25"""
     userExistData = (user_id,)
     result = query_db(checkUserQuery, userExistData)
-    print(result)
     return jsonify(result)
 
 
 @app.route('/tweetService/v1/publicTweets', methods=['GET'])
 def getPublicTimeline():
-    checkUserQuery = """SELECT userid, tweet_text, date_of_creation FROM tweets LIMIT 25"""
-    # userExistData = ()
+
+    checkUserQuery = """SELECT u.userName, t.tweet_text, t.date_of_creation FROM users u, tweets t where u.id == t.userid ORDER BY date_of_creation DESC LIMIT 25"""
     result = plain_query_db(checkUserQuery)
-    print(result)
-    # tweets = jsonify(result)
-    # response = jsonify({"userId": user_id, "tweets": tweets})
     return jsonify(result)
 
 
-@app.route('/tweetService/v1/<user_id>/tweetsFromFollowings', methods=['GET'])
-def getHomeTimeline(user_id):
-    user_id = user_id.strip()
-    # ideally one should take sessionId in the request and validate the session and proceed
-    if not user_id:
+@app.route('/tweetService/v1/tweetsFromFollowings', methods=['GET'])
+def getHomeTimeline():
+    user_name = request.args.get("userName")
+    if not user_name:
         make_error(400, "Required parameter 'userId' is missing")
+    user_name = user_name.strip()
+    user_id = getUserId(user_name)  # this does user validation also
     checkUserQuery = """SELECT following FROM followers WHERE userid=? LIMIT 25"""
     userExistData = (user_id,)
     resultForFollowing = query_db(checkUserQuery, userExistData)
@@ -161,10 +166,10 @@ def getHomeTimeline(user_id):
     for row in resultForFollowing:
         print(row)
         followingUserId = row.get('following')
-        checkUserQuery1 = """SELECT userid,tweet_text, date_of_creation FROM tweets WHERE userid=? LIMIT 1"""
+        checkUserQuery1 = """SELECT userid,tweet_text, date_of_creation FROM tweets WHERE userid=? ORDER BY date_of_creation DESC LIMIT 1"""
         userExistData1 = (followingUserId,)
         result = query_db(checkUserQuery1, userExistData1)
-        results.append(result)
+        results.append(result[0])
     return jsonify(results)
 
 
