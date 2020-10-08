@@ -157,7 +157,7 @@ def getPublicTimeline():
 
 @app.route('/tweetService/v1/tweetsFromFollowings', methods=['GET'])
 def getHomeTimeline():
-    user_name = request.json.get("userName")
+    user_name = request.args.get("userName")
     if not user_name:
         make_error(400, "Required parameter 'userId' is missing")
     user_name = user_name.strip()
