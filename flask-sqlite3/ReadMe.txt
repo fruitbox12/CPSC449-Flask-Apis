@@ -17,4 +17,12 @@ We are maintaining sample input body for each and every service under Sample_Dat
 
 CreateUser:
 
-In order to run 
+In order to run the create user post call from command line, run below code.
+
+curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5000/createUser -d @Sample_Data/createUser.json
+
+Authenticate:
+
+Run below command to call Authenticate service from command line.
+
+curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5000/authenticate -d @Sample_Data/authenticate.json 
