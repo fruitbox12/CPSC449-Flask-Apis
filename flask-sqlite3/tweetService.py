@@ -121,7 +121,6 @@ def helloMethod():
 
 @app.route('/tweetService/v1/postTweet', methods=['POST'])
 def postTweet():
-    print("hr")
     user_name = request.json.get("userName")
     tweet_text = request.json.get("tweetText")
     if None in (user_name, tweet_text):

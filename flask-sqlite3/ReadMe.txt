@@ -17,11 +17,11 @@ We are maintaining sample input body for each and every service under Sample_Dat
 
 CreateUser:
 
-In order to run the create user post call from command line, run below code.
+In order to run the create user post call from command line, run below code. Let's create two users, so that it will be easy for add followers, remove followers etc services.
 
 curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5000/createUser -d @Sample_Data/createUser.json
 
-curl -X GET -H 'Content-Type: application/json' http://127.0.0.1:5100/tweetService/v1/userTweets?userName="john_doe"
+curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5000/createUser -d @Sample_Data/createUser2.json
 
 Authenticate:
 
@@ -41,3 +41,9 @@ Remove Follower:
 Run below command to call remove follower service from command line.
 
 curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5000/removeFollower -d @Sample_Data/removeFollower.json 
+
+Post Tweet:
+
+Run below command to call post tweet service from command line.
+
+curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5100/tweetService/v1/postTweet -d @Sample_Data/postTweet.json 
