@@ -131,17 +131,17 @@ def addFollower():
     if request.json is None:
     	make_error(400, 'No Data Provided')
     userName = request.json.get("userName")
-    usernameToFollow = request.json.get("usernameToFollow")
+    userNameToFollow = request.json.get("userNameToFollow")
     check_parameters(userName, usernameToFollow)
     checkUserQuery = """SELECT id, username FROM users WHERE username=?"""
     userExistData = (userName,)
     user_result = query_db_check(checkUserQuery, userExistData)
-    userExistData = (usernameToFollow,)
+    userExistData = (userNameToFollow,)
     follow_user_result = query_db_check(checkUserQuery, userExistData)
     if user_result and follow_user_result:
     	
         sql_select = """Select id from users where userName = ?"""
-        data = (usernameToFollow,)
+        data = (userNameToFollow,)
         idOfFollowing = query_db_check(sql_select, data).get("id")
         data = (userName,)
         idOfUser = query_db_check(sql_select, data).get("id")
@@ -152,10 +152,10 @@ def addFollower():
         record = query_db_check(checkDuplicateSql,duplicate_data)
         if record is None:
         	query_db(sql_insert, values)
-        	message = str(userName + ' has started following ' + usernameToFollow)
+        	message = str(userName + ' has started following ' + userNameToFollow)
         	return {'message': message, 'statueCode': 201}
         else:
-        	message = str(userName + ' already follows ' + usernameToFollow)
+        	message = str(userName + ' already follows ' + userNameToFollow)
         	make_error(400, message)        
     else:
         make_error(400, 'user Or UserToFollow Does Not Exists')
