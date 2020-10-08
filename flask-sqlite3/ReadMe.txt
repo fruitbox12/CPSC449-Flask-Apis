@@ -47,3 +47,22 @@ Post Tweet:
 Run below command to call post tweet service from command line.
 
 curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5100/tweetService/v1/postTweet -d @Sample_Data/postTweet.json 
+
+
+Get User Tweet:
+
+Run below command to call get user tweet service from command line.
+
+curl -X GET -H 'Content-Type: application/json' http://127.0.0.1:5100/tweetService/v1/userTweets?userName="project1"
+
+Get Public Tweets:
+
+Run below command to call Get public tweets service from command line.
+
+curl -X GET -H 'Content-Type: application/json' http://127.0.0.1:5100/tweetService/v1/publicTweets 
+
+Get Tweet From Following:
+
+Run below command to call Get Tweet From Following from command line.
+
+curl -X GET -H 'Content-Type: application/json' http://127.0.0.1:5100/tweetService/v1/tweetsFromFollowings?userName="project2" 
