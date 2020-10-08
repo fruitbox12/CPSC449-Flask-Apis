@@ -136,7 +136,7 @@ def postTweet():
 
 @app.route('/tweetService/v1/userTweets', methods=['GET'])
 def getUserTimeline():
-    user_name = request.json.get("userName")
+    user_name = request.args.get("userName")
     if user_name is None:
         make_error(400, "Required parameter 'userName' is missing")
     user_name = user_name.strip()
