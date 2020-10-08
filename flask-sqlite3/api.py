@@ -132,7 +132,7 @@ def addFollower():
     	make_error(400, 'No Data Provided')
     userName = request.json.get("userName")
     userNameToFollow = request.json.get("userNameToFollow")
-    check_parameters(userName, usernameToFollow)
+    check_parameters(userName, userNameToFollow)
     checkUserQuery = """SELECT id, username FROM users WHERE username=?"""
     userExistData = (userName,)
     user_result = query_db_check(checkUserQuery, userExistData)

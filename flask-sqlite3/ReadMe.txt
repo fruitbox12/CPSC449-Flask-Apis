@@ -28,3 +28,10 @@ Authenticate:
 Run below command to call Authenticate service from command line.
 
 curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5000/authenticate -d @Sample_Data/authenticate.json 
+
+
+Add Follower:
+
+Run below command to call add follower service from command line.
+
+curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5000/addFollower -d @Sample_Data/addFollower.json 
