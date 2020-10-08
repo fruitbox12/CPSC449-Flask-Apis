@@ -35,3 +35,9 @@ Add Follower:
 Run below command to call add follower service from command line.
 
 curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5000/addFollower -d @Sample_Data/addFollower.json 
+
+Remove Follower:
+
+Run below command to call remove follower service from command line.
+
+curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5000/removeFollower -d @Sample_Data/removeFollower.json 
