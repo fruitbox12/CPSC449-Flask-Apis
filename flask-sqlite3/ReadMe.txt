@@ -10,3 +10,11 @@ User should have foreman installed on system to run the application. As we are h
 Commands:  
       cd ~/repo/flask-sqlite3
       foreman start
+
+How to run or test the services?
+
+We are maintaining sample input body for each and every service under Sample_Data folder. Just run the below commands to test them. If anyone want's to try custom input, edit those file and run commands mentioned below. We are using curl to call services.
+
+CreateUser:
+
+In order to run 
