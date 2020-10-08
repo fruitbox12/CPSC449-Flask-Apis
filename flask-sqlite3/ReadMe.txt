@@ -21,6 +21,8 @@ In order to run the create user post call from command line, run below code.
 
 curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5000/createUser -d @Sample_Data/createUser.json
 
+curl -X GET -H 'Content-Type: application/json' http://127.0.0.1:5100/tweetService/v1/userTweets?userName="john_doe"
+
 Authenticate:
 
 Run below command to call Authenticate service from command line.
